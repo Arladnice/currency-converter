@@ -11,9 +11,11 @@ module.exports = {
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    ecmaVersion: "latest",
-    sourceType: "module",
-    project: true,
+    ecmaFeatures: {
+      jsx: true,
+    },
+    ecmaVersion: 12,
+    sourceType: 'module',
     tsconfigRootDir: __dirname,
   },
   plugins: ["react-refresh"],

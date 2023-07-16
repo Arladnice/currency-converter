@@ -7,11 +7,18 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import "./index.css";
 import { ThemeContextProvider } from "./theme/ThemeContextProvider.tsx";
+import { Provider } from "react-redux";
+import { store } from "./redux/store.ts";
+import CurrencyProvider from "./context/CurrencyContext.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeContextProvider>
-      <App />
-    </ThemeContextProvider>
+    <Provider store={store}>
+      <ThemeContextProvider>
+        <CurrencyProvider>
+          <App />
+        </CurrencyProvider>
+      </ThemeContextProvider>
+    </Provider>
   </React.StrictMode>
 );
