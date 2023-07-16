@@ -15,7 +15,7 @@ const SelectCountry: FC<SelectCountryProps> = ({ label, setValue, value }) => {
   const { data, error, isLoading } = useAppSelector(
     (state) => state.currencies
   );
-  console.log(data);
+  // console.log(data);
 
   const [options, setOptions] = useState<any>([]);
 

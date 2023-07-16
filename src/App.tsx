@@ -1,4 +1,5 @@
-import { Container, Grid, Typography, CssBaseline } from "@mui/material";
+import { useState } from "react";
+import { Container, Grid, Typography, CssBaseline, Box } from "@mui/material";
 import "./App.css";
 import InputAmount from "./components/InputAmount";
 import SelectCountry from "./components/SelectCountry";
@@ -6,14 +7,41 @@ import SwitchCurrency from "./components/SwitchCurrency";
 import { useThemeContext } from "./theme/ThemeContextProvider";
 import { ThemeProvider } from "@emotion/react";
 import NightModeToggle from "./components/NightModeToggle";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { CurrencyContext } from "./context/CurrencyContext";
+import axios from "axios";
 
 function App() {
   const { theme } = useThemeContext();
 
-  const { fromCurrency, setFromCurrency, toCurrency, setToCurrency } =
-    useContext(CurrencyContext)!;
+  const {
+    fromCurrency,
+    setFromCurrency,
+    toCurrency,
+    setToCurrency,
+    firstAmount,
+  } = useContext(CurrencyContext)!;
+
+  const [resultCurrency, setResultCurrency] = useState(0);
+  const codeFromCurrency = fromCurrency.split(" ")[0];
+  const codeToCurrency = toCurrency.split(" ")[0];
+
+  useEffect(() => {
+    if (firstAmount) {
+      axios
+        .get("https://api.freecurrencyapi.com/v1/latest", {
+          params: {
+            apikey: "fca_live_R1bjwclp0miUejau7WN75x420xahH198rn9tN5Kr",
+            base_currency: codeFromCurrency,
+            currencies: codeToCurrency,
+          },
+        })
+        .then((response) => {
+          setResultCurrency(response.data.data[codeToCurrency]);
+        })
+        .catch((error) => console.log(error));
+    }
+  }, [firstAmount, fromCurrency, toCurrency]);
 
   const boxStyles = {
     textAlign: "center",
@@ -50,6 +78,18 @@ function App() {
             label="В"
           />
         </Grid>
+        {firstAmount ? (
+          <Box sx={{ textAlign: "left", marginTop: "1rem" }}>
+            <Typography variant="h5">
+              {firstAmount} {fromCurrency} =
+            </Typography>
+            <Typography variant="h5" sx={{ marginTop: "5px" }}>
+              {resultCurrency * Number(firstAmount)} {toCurrency}
+            </Typography>
+          </Box>
+        ) : (
+          ""
+        )}
       </Container>
     </ThemeProvider>
   );
