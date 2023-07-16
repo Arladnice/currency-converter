@@ -15,5 +15,5 @@ yarn install
 ```
 2. Запустите клиентское приложение локально
 ```bash
-yarn start
+yarn run dev
 ```
