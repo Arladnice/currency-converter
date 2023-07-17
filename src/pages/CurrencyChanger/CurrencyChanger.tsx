@@ -7,7 +7,7 @@ import { CurrencyContext } from "/src/context/CurrencyContext";
 import axios from "axios";
 import SwitchCurrency from "/src/components/SwitchCurrency";
 
-const Home = () => {
+const CurrencyChanger = () => {
   const { theme } = useThemeContext();
 
   const boxStyles = {
@@ -45,7 +45,7 @@ const Home = () => {
           },
         })
         .then((response) => {
-          console.log(response.data);
+          console.log(response.data.data);
           setResultCurrency(response.data.data[codeToCurrency]);
         })
         .catch((error) => console.log(error));
@@ -83,4 +83,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default CurrencyChanger;
