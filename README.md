@@ -5,8 +5,8 @@
 - React
 - Redux-toolkit
 - Material UI
-- [API]("freecurrencyapi.com")
-- [Chart.js]("https://www.chartjs.org/)
+- freecurrencyapi
+- Chart.js
 
 ## Установка
 
