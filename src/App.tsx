@@ -15,28 +15,27 @@ function App() {
       <NightModeToggle />
       <CssBaseline />
       <Box sx={{ paddingBottom: "1rem" }}>
-        <Button sx={{ margin: "0 1rem" }} variant="outlined">
-          <Link
-            style={{
-              textDecoration: "none",
-              color: theme.palette.primary.main,
-            }}
-            to={"/"}
-          >
+        <Link
+          style={{
+            textDecoration: "none",
+            color: theme.palette.primary.main,
+          }}
+          to={"/"}
+        >
+          <Button sx={{ margin: "0 1rem" }} variant="outlined">
             Конвертер
-          </Link>
-        </Button>
-        <Button variant="outlined">
-          <Link
-            style={{
-              textDecoration: "none",
-              color: theme.palette.primary.main,
-            }}
-            to={"/table"}
-          >
-            Таблица
-          </Link>
-        </Button>
+          </Button>
+        </Link>
+
+        <Link
+          style={{
+            textDecoration: "none",
+            color: theme.palette.primary.main,
+          }}
+          to={"/table"}
+        >
+          <Button variant="outlined">Таблица</Button>
+        </Link>
       </Box>
       <Routes>
         <Route path="/" element={<CurrencyChanger />} />

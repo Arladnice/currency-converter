@@ -15,7 +15,6 @@ const SelectCountry: FC<SelectCountryProps> = ({ label, setValue, value }) => {
   const { data, error, isLoading } = useAppSelector(
     (state) => state.currencies
   );
-  // console.log(data);
 
   const [options, setOptions] = useState<any>([]);
 
@@ -25,12 +24,11 @@ const SelectCountry: FC<SelectCountryProps> = ({ label, setValue, value }) => {
 
   useEffect(() => {
     if (data) {
-      const dataFilter = data.filter((item) => "currencies" in item);
-      const dataCountries = dataFilter.map((item) => {
-        return `${Object.keys(item.currencies)[0]} - ${item.name.common}`;
-      });
-
-      setOptions(dataCountries);
+      const clearedData = [];
+      for (let [key, _] of Object.entries(data)) {
+        clearedData.push(key);
+      }
+      setOptions(clearedData);
     }
   }, [data]);
 

@@ -1,7 +1,17 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
+interface Data {
+  code: string;
+  decimal_digits: number;
+  name: string;
+  name_plural: string;
+  rounding: number;
+  symbol: string;
+  symbol_native: string;
+}
+
 export interface CurrenciesState {
-  data: any[];
+  data: Data[];
   isLoading: boolean;
   error: string;
 }
@@ -19,10 +29,10 @@ export const currenciesSlice = createSlice({
     currenciesFetching(state) {
       state.isLoading = true;
     },
-    currenciesFetchingSuccess(state, action: PayloadAction<any[]>) {
+    currenciesFetchingSuccess(state, action: PayloadAction<any>) {
       state.isLoading = false;
       state.error = "";
-      state.data = action.payload;
+      state.data = action.payload.data;
     },
     currenciesFetchingError(state, action: PayloadAction<string>) {
       state.isLoading = false;

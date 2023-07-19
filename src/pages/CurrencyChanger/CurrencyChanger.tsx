@@ -16,7 +16,7 @@ const CurrencyChanger = () => {
     borderRadius: 2,
     background:
       theme.palette.mode === "dark"
-        ? theme.palette.grey[800]
+        ? theme.palette.grey[600]
         : theme.palette.grey[100],
     padding: "2rem 2rem",
     boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)",
@@ -42,10 +42,10 @@ const CurrencyChanger = () => {
           params: {
             apikey: "fca_live_R1bjwclp0miUejau7WN75x420xahH198rn9tN5Kr",
             base_currency: codeFromCurrency,
+            currencies: codeToCurrency,
           },
         })
         .then((response) => {
-          console.log(response.data.data);
           setResultCurrency(response.data.data[codeToCurrency]);
         })
         .catch((error) => console.log(error));

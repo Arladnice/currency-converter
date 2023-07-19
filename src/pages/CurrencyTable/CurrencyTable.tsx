@@ -1,5 +1,4 @@
 import * as React from "react";
-import { alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -9,26 +8,36 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
-import Checkbox from "@mui/material/Checkbox";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import DeleteIcon from "@mui/icons-material/Delete";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
 import { useState, useEffect, useContext } from "react";
 import { CurrencyContext } from "/src/context/CurrencyContext";
 import axios from "axios";
 import SelectCountry from "/src/components/SelectCountry";
+import InputAmount from "/src/components/InputAmount";
+import BasicModal from "/src/components/ModalCurrency";
 
 interface DataCurrency {
   name: string;
   value: number;
 }
 
+interface DataCurrencyGraph {
+  name: string;
+  value: number;
+}
+
 function createDataCurrency(name: string, value: number): DataCurrency {
+  return {
+    name,
+    value,
+  };
+}
+
+function createDataCurrencyGraph(
+  name: string,
+  value: number
+): DataCurrencyGraph {
   return {
     name,
     value,
@@ -59,10 +68,6 @@ function getComparator<Key extends keyof any>(
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-// Since 2020 all major browsers ensure sort stability with Array.prototype.sort().
-// stableSort() brings sort stability to non-modern browsers (notably IE11). If you
-// only support modern browsers you can replace stableSort(exampleArray, exampleComparator)
-// with exampleArray.slice().sort(exampleComparator)
 function stableSort<T>(
   array: readonly T[],
   comparator: (a: T, b: T) => number
@@ -101,7 +106,6 @@ const headCells: readonly HeadCell[] = [
 ];
 
 interface EnhancedTableProps {
-  numSelected: number;
   onRequestSort: (
     event: React.MouseEvent<unknown>,
     property: keyof DataCurrency
@@ -112,7 +116,7 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
-  const { order, orderBy, numSelected, rowCount, onRequestSort } = props;
+  const { order, orderBy, onRequestSort } = props;
   const createSortHandler =
     (property: keyof DataCurrency) => (event: React.MouseEvent<unknown>) => {
       onRequestSort(event, property);
@@ -121,9 +125,9 @@ function EnhancedTableHead(props: EnhancedTableProps) {
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox"></TableCell>
         {headCells.map((headCell) => (
           <TableCell
+            sx={{ padding: "2rem" }}
             key={headCell.id}
             align={headCell.numeric ? "right" : "left"}
             padding={headCell.disablePadding ? "none" : "normal"}
@@ -148,95 +152,69 @@ function EnhancedTableHead(props: EnhancedTableProps) {
   );
 }
 
-interface EnhancedTableToolbarProps {
-  numSelected: number;
-}
-
-function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const { numSelected } = props;
-
-  return (
-    <Toolbar
-      sx={{
-        pl: { sm: 2 },
-        pr: { xs: 1, sm: 1 },
-        ...(numSelected > 0 && {
-          bgcolor: (theme) =>
-            alpha(
-              theme.palette.primary.main,
-              theme.palette.action.activatedOpacity
-            ),
-        }),
-      }}
-    >
-      {numSelected > 0 ? (
-        <Typography
-          sx={{ flex: "1 1 100%" }}
-          color="inherit"
-          variant="subtitle1"
-          component="div"
-        >
-          {numSelected} selected
-        </Typography>
-      ) : (
-        <Typography
-          sx={{ flex: "1 1 100%" }}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          Валюты
-        </Typography>
-      )}
-      {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
-      )}
-    </Toolbar>
-  );
-}
-
 export default function CurrencyTable() {
-  const [order, setOrder] = React.useState<Order>("asc");
-  const [orderBy, setOrderBy] = React.useState<keyof DataCurrency>("name");
-  const [selected, setSelected] = React.useState<readonly string[]>([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [rows, setRows] = React.useState<DataCurrency[]>([]);
-  const { fromCurrency, setFromCurrency } = useContext(CurrencyContext)!;
+  const [order, setOrder] = useState<Order>("asc");
+  const [orderBy, setOrderBy] = useState<keyof DataCurrency>("name");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rows, setRows] = useState<DataCurrency[]>([]);
+  const [currency, setCurrency] = useState("");
+  const [currencyGraph, setCurrencyGraph] = useState<DataCurrencyGraph[]>([]);
+  const [openModal, setOpenModal] = React.useState(false);
 
-  const codeFromCurrency = fromCurrency.split(" ")[0];
-  console.log(rows);
+  const { fromCurrency, setFromCurrency, firstAmount } =
+    useContext(CurrencyContext)!;
 
   useEffect(() => {
     axios
       .get("https://api.freecurrencyapi.com/v1/latest", {
         params: {
           apikey: "fca_live_R1bjwclp0miUejau7WN75x420xahH198rn9tN5Kr",
-          base_currency: codeFromCurrency,
+          base_currency: fromCurrency,
         },
       })
       .then((response) => {
+        setRows([]);
         for (let [key, value] of Object.entries(response.data.data)) {
           if (value) {
             setRows((prevArray) => [
               ...prevArray,
-              createDataCurrency(key, value),
+              createDataCurrency(key, value as number),
             ]);
           }
         }
       })
       .catch((error) => console.log(error));
-  }, []);
+  }, [fromCurrency]);
+
+  useEffect(() => {
+    if (currency) {
+      axios
+        .get("https://api.freecurrencyapi.com/v1/historical", {
+          params: {
+            apikey: "fca_live_R1bjwclp0miUejau7WN75x420xahH198rn9tN5Kr",
+            date_from: "2022-12-31",
+            date_to: "2023-07-17",
+            currencies: currency,
+          },
+        })
+        .then((response) => {
+          setCurrencyGraph([]);
+          for (let [key, value] of Object.entries(response.data.data)) {
+            if (value) {
+              setCurrencyGraph((prevArray) => [
+                ...prevArray,
+                createDataCurrencyGraph(
+                  key,
+                  (value as Record<string, number>)[currency]
+                ),
+              ]);
+            }
+          }
+        })
+        .catch((error) => console.log(error));
+    }
+  }, [currency]);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -248,23 +226,8 @@ export default function CurrencyTable() {
   };
 
   const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected: readonly string[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-
-    setSelected(newSelected);
+    setCurrency(name);
+    setOpenModal(true);
   };
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -278,26 +241,22 @@ export default function CurrencyTable() {
     setPage(0);
   };
 
-  const isSelected = (name: string) => selected.indexOf(name) !== -1;
-
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const visibleRows = React.useMemo(
-    () =>
-      stableSort(rows, getComparator(order, orderBy)).slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-      ),
-    [order, orderBy, page, rowsPerPage]
+  const visibleRows = stableSort(rows, getComparator(order, orderBy)).slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar numSelected={selected.length} />
-        <Box sx={{ margin: "2rem" }}>
+        <Box sx={{ padding: "2rem" }}>
+          <InputAmount />
+        </Box>
+        <Box sx={{ margin: "0 2rem" }}>
           <SelectCountry
             value={fromCurrency}
             setValue={setFromCurrency}
@@ -307,15 +266,13 @@ export default function CurrencyTable() {
         <TableContainer>
           <Table sx={{ minWidth: 750 }} size={"medium"}>
             <EnhancedTableHead
-              numSelected={selected.length}
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
             />
             <TableBody>
-              {rows.map((row, index) => {
-                const isItemSelected = isSelected(row.name);
+              {visibleRows.map((row, index) => {
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
@@ -323,10 +280,8 @@ export default function CurrencyTable() {
                     hover
                     onClick={(event) => handleClick(event, row.name)}
                     role="checkbox"
-                    aria-checked={isItemSelected}
                     tabIndex={-1}
                     key={index}
-                    selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
                     <TableCell
@@ -334,10 +289,13 @@ export default function CurrencyTable() {
                       id={labelId}
                       scope="row"
                       padding="none"
+                      sx={{ padding: "2rem" }}
                     >
                       {row.name}
                     </TableCell>
-                    <TableCell align="right">{row.value}</TableCell>
+                    <TableCell align="right">
+                      {row.value * Number(firstAmount)}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -361,8 +319,16 @@ export default function CurrencyTable() {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage={"Строк на странице"}
         />
       </Paper>
+      <BasicModal
+        openModal={openModal}
+        setOpenModal={setOpenModal}
+        currencyGraph={currencyGraph}
+        fromCurrency={fromCurrency}
+        currency={currency}
+      />
     </Box>
   );
 }

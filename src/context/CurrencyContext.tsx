@@ -12,9 +12,9 @@ interface ICurrencyContext {
 export const CurrencyContext = createContext<ICurrencyContext | null>(null);
 
 const CurrencyProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [fromCurrency, setFromCurrency] = useState("USD - United States");
-  const [toCurrency, setToCurrency] = useState("RUB - Russia");
-  const [firstAmount, setFirstAmount] = useState("");
+  const [fromCurrency, setFromCurrency] = useState("USD");
+  const [toCurrency, setToCurrency] = useState("RUB");
+  const [firstAmount, setFirstAmount] = useState("1");
 
   const value = {
     fromCurrency,
