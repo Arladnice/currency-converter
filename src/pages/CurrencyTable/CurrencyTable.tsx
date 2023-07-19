@@ -217,7 +217,7 @@ export default function CurrencyTable() {
   }, [currency]);
 
   const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
+    _: React.MouseEvent<unknown>,
     property: keyof DataCurrency
   ) => {
     const isAsc = orderBy === property && order === "asc";
@@ -225,12 +225,12 @@ export default function CurrencyTable() {
     setOrderBy(property);
   };
 
-  const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
+  const handleClick = (_: React.MouseEvent<unknown>, name: string) => {
     setCurrency(name);
     setOpenModal(true);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 

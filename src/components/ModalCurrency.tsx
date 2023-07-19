@@ -55,7 +55,6 @@ export const BasicModal: React.FC<BasicModalProps> = ({
   fromCurrency,
   currency,
 }) => {
-  const handleOpen = () => setOpenModal(true);
   const handleClose = () => setOpenModal(false);
 
   const currencyPrice: number[] = [];
